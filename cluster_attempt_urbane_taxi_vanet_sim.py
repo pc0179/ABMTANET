@@ -278,7 +278,7 @@ graph_data_filename = 'test.gpickle' #results.graph_filename
 results_filename = 'second_bigloop_graph_cluster_trial.pcikle'
 """
 
-"""
+
 #still C207
 #a bigger map... Cologne Centraaaal...
 #data_file_path = '/home/user/MiniTaxiFleets/bigloop/' #results.graph_filepath
@@ -286,12 +286,22 @@ results_filename = 'second_bigloop_graph_cluster_trial.pcikle'
 #results_filename = 'HP_Cologne_Centraal.pickle'
 
 #even BIGGER map, 64km^2 biatch.
-data_file_path = '/home/user/MiniTaxiFleets/gpickle_road_network_data/' #results.graph_filepath
-graph_data_filename = 'Highest_Protocol_SF_Central_Road_Network.gpickle' #results.graph_filename
-results_filename = 'SF_central_test_sim.pickle'
-CITY_NAME = 'SF64'
-"""
+data_file_path = '/home/user/ABMTANET/gpickle_road_network_data/' #results.graph_filepath
+#graph_data_filename = 'Highest_Protocol_SF_Central_Road_Network.gpickle' #results.graph_filename
+#results_filename = 'SF_central_test_sim.pickle'
+graph_data_filename = 'Highest_Protocol_Roma_Centrale_Road_Network.gpickle' #results.graph_filename
+#results_filename = 'roma_centrale_test_sim_4hrs.pickle'
 
+passenger_trip_data_filename = 'roma_passenger_trip_data_dict_18Jan.pickle'
+sensor_data_filename = 'roma_sensor_pos_dict_18Jan.pickle'
+
+CITY_NAME = 'Roma'
+SIM_RUN_DATE = '021Jan'
+
+output_results_data_file_path =  '/home/user/ABMTANET/simulation_results/'
+
+
+"""
 #C255!
 #running long-ass simulations... 4+ hours...
 data_file_path =  '/home/toshiba/MiniTaxiFleets/gpickle_road_network_data/' #'/home/toshiba/MiniTaxiFleets/bigloop/'
@@ -304,7 +314,7 @@ SIM_RUN_DATE = 'jan18'
 
 passenger_trip_data_filename = 'roma_passenger_trip_data_dict_18Jan.pickle'
 sensor_data_filename = 'roma_sensor_pos_dict_18Jan.pickle'
-
+"""
 
 
 
@@ -322,7 +332,7 @@ graph_data_filename = results.graph_filename
 """
 
 
-output_results_data_file_path =  '/home/toshiba/MiniTaxiFleets/bigloop/simulation_results/'
+
 
 road_network = read_gpickle(data_file_path + graph_data_filename)
 
@@ -359,7 +369,7 @@ MAX_V = 20*(1000/3600) # m/s (equiv to 20km/h)
 
 
 #Urban V2V LOS Model:
-V2V_EXPO_MODEL_COEFFS =  [-2.36945344, -0.08361897]
+V2V_EXPO_MODEL_COEFFS = [0,1]# [-2.36945344, -0.08361897]
 NORM_DIST_SCALING_FACTOR = 1/500 #max metres?
 # Data Structures
 # initiation loop, set out all taxi positions, trips, sensors... etc...
@@ -683,7 +693,7 @@ for time_step in range(0,LEN_SIM):
             print('taxi: %i is now serving trip: %i going from: %i to %i in %i steps' % (taxi_agent.id, trip_agent.id, trip_agent.start_node_id, taxi_agent.trip_dest_node_id, taxi_agent.num_route_nodes))
 
         if taxi_agent.occupied is True and trip_agent.served_by is not None: #add trip info to taxi memory, maybe store only latest trip it passed but could not serve as it was already serving another passenger trip...
-            taxi_agent.other_trip_loc = [trip_latitude_array[trip_agent.id], trip_longitude_array[trip_agent.id]]
+            taxi_agent.other_trip_loc = [start_passenger_trip_latitude_array[trip_agent.id], start_passenger_trip_longitude_array[trip_agent.id]]
             taxi_agent.other_trip_ts = time_step
 
 

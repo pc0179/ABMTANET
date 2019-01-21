@@ -15,13 +15,14 @@ plt.ion()
 
 
 #C225
-sim_data_results_filepath = '/home/toshiba/MiniTaxiFleets/bigloop/simulation_results/'
+#sim_data_results_filepath = '/home/toshiba/MiniTaxiFleets/bigloop/simulation_results/'
 
-#'%s_link_traffic_count_%s.pickle' % (CITY_NAME, SIM_RUN_DATE)
+#C207
+sim_data_results_filepath = '/home/user/ABMTANET/simulation_results/'
 
 #general model params
 CITY_NAME = 'Roma' #'SF'
-SIM_RUN_DATE = 'jan18'
+SIM_RUN_DATE = '021Jan'
 
 
 general_model_params_filename = '%s_general_model_params_%s.pickle' % (CITY_NAME,SIM_RUN_DATE)
@@ -184,7 +185,7 @@ ax.margins(0.05)
 plt.show()
 
 # plot road graph just to check what the hell is happening...
-
+"""
 import osmnx
 from networkx import read_gpickle
 
@@ -194,7 +195,7 @@ roadnetwork_filename = 'Highest_Protocol_%s_Centrale_Road_Network.gpickle' % CIT
 road_network = read_gpickle(roadnetwork_data_file_path + roadnetwork_filename)
 
 osmnx.plot_graph(road_network)
-
+"""
 
 
 """
