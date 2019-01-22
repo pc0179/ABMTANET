@@ -18,12 +18,20 @@ plt.ion()
 #sim_data_results_filepath = '/home/toshiba/MiniTaxiFleets/bigloop/simulation_results/'
 
 #C207
-sim_data_results_filepath = '/home/user/ABMTANET/simulation_results/'
+#sim_data_results_filepath = '/home/user/ABMTANET/simulation_results/'
+sim_data_results_filepath = '/home/user/Dropbox/tanet_sim_results/simulation_results/'
 
 #general model params
-CITY_NAME = 'Roma' #'SF'
-SIM_RUN_DATE = '021Jan'
+# CITY_NAME = 'Roma' #'SF'
+# SIM_RUN_DATE = '021Jan'
+#CITY_NAME = 'koln'
+#SIM_RUN_DATE = '2hrs_21Jan'
+#CITY_NAME = 'koln'
+#SIM_RUN_DATE = '200taxis_2hrs_21Jan'
 
+
+CITY_NAME = 'Roma'
+SIM_RUN_DATE = '8hrs_expolos_21jan'
 
 general_model_params_filename = '%s_general_model_params_%s.pickle' % (CITY_NAME,SIM_RUN_DATE)
  
@@ -129,7 +137,8 @@ with open(sim_data_results_filepath+passenger_trip_start_locs_filname, 'rb') as 
 
 
 a = 0
-N = 500
+N = NUM_TAXIS #500
+
 fig, ax = plt.subplots()
 plotting_colours = iter(plt.cm.rainbow(np.linspace(0,1,N-a)))
 for i in range(a,N):
