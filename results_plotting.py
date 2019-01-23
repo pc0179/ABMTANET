@@ -15,15 +15,20 @@ plt.ion()
 
 
 #C225
-#sim_data_results_filepath = '/home/toshiba/MiniTaxiFleets/bigloop/simulation_results/'
+sim_data_results_filepath = '/home/toshiba/ABMTANET/simulation_results/'
 
 #C207
-sim_data_results_filepath = '/home/user/ABMTANET/simulation_results/'
+#sim_data_results_filepath = '/home/user/ABMTANET/simulation_results/'
 
 #general model params
-CITY_NAME = 'Roma' #'SF'
-SIM_RUN_DATE = '021Jan'
+#CITY_NAME = 'Roma' #'SF'
+#SIM_RUN_DATE = '8hrs_expolos_21jan' #'nolos_21jan'
 
+#CITY_NAME = 'Roma'
+#SIM_RUN_DATE = '2Ktaxis_2hrs_expolos_23jan'
+
+CITY_NAME = 'Roma'
+SIM_RUN_DATE = '2Ktaxis_30mins_expolos_23jan'
 
 general_model_params_filename = '%s_general_model_params_%s.pickle' % (CITY_NAME,SIM_RUN_DATE)
  
@@ -33,6 +38,11 @@ with open((sim_data_results_filepath+general_model_params_filename),'rb') as han
 NUM_SENSORS = general_model_params_dict['num_sensors']
 NUM_TAXIS = general_model_params_dict['num_taxis']
 NUM_TRIPS = general_model_params_dict['num_trips']
+
+MIN_LAT = general_model_params_dict['min_lat']
+MAX_LAT = general_model_params_dict['max_lat']
+MIN_LON = general_model_params_dict['min_lon']
+MAX_LON = general_model_params_dict['max_lon']
 
 model_space_height_m = general_model_params_dict['model_height'] #2334
 model_space_width_m =  general_model_params_dict['model_width'] #3362
@@ -67,13 +77,14 @@ sensor_locations_filename = '%s_sensor_locations_%s.pickle' % (CITY_NAME,SIM_RUN
 with open(sim_data_results_filepath+sensor_locations_filename, 'rb') as handle3:
     sensor_locations_dict = pickle.load(handle3)
 
+"""
 fig, ax = plt.subplots()
 ax.scatter(sensor_locations_dict['lon'],sensor_locations_dict['lat'])
 ax.set_ylabel('latitude')
 ax.set_xlabel('longitude')
 ax.set_title('sensor locations')
 plt.show()
-
+"""
 
 # passenger trip results...
 passenger_trips_filename = '%s_passenger_trip_results_%s.pickle' % (CITY_NAME,SIM_RUN_DATE)
@@ -143,6 +154,57 @@ ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
 ax.set_title('%s' % CITY_NAME)
 plt.show()
+
+
+#### V2V exchanges? and taxi trajectories...
+v2v_exchanges_filname = '%s_v2v_sharing_loc_heatmap_dict_%s.pickle' % (CITY_NAME, SIM_RUN_DATE)
+
+with open(sim_data_results_filepath+v2v_exchanges_filname, 'rb') as handle6:
+    v2v_exchange_locs_dict = pickle.load(handle6)
+
+
+a = 0
+N = 500
+fig, ax = plt.subplots()
+plotting_colours = iter(plt.cm.rainbow(np.linspace(0,1,N-a)))
+for i in range(a,N):
+    plot_colour = next(plotting_colours)
+    lon, lat = list(zip(*taxi_pos_dict[i]))
+    ax.plot(lon,lat,c=plot_colour)
+
+
+fig, ax = plt.subplots()
+T = 500 #seconds of simulations, ie iterations/time_steps...
+plotting_colours = iter(plt.cm.rainbow(np.linspace(0,1,T)))
+
+Xedges = np.linspace(MIN_LON,MAX_LON,16)
+Yedges = np.linspace(MIN_LAT,MAX_LAT,16)
+histo2d_dict = dict()
+
+for t in range(0,T):
+#    plot_colour = next(plotting_colours)
+    lon2 = v2v_exchange_locs_dict[t]['longitude']
+    lat2 = v2v_exchange_locs_dict[t]['latitude']
+    H, xedges, yedges = np.histogram2d(lon2,lat2, bins=(Xedges,Yedges))
+
+    histo2d_dict[t] = H
+
+#    ax.plot(lon2,lat2,'*k')
+#    ax.plot(lon2,lat2, c=plot_colour, marker='+')
+#ax.plot(sensor_locations_dict['lon'],sensor_locations_dict['lat'],'ok')
+#ax.plot(passenger_trip_start_locs_dict['longitude'], passenger_trip_start_locs_dict['latitude'],'*g')
+ax.set_xlabel('Longitude')
+ax.set_ylabel('Latitude')
+ax.set_title('%s' % CITY_NAME)
+plt.show()
+
+
+plt.figure()
+plt.plot(lon2,lat2,'+k')
+plt.xlabel('longitude')
+plt.ylabel('latitude')
+plt.show()
+
 
 
 

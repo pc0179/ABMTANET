@@ -39,6 +39,12 @@ this could be saved and loaded everytime, should speed up debugging?
 
 
 
+
+why are the packet delivery ratios sooooo low? like less than 1%??????
+tried longer 8hr simulations (500 taxis, trips and sensors)... not much...
+now trying 2000 taxis, trips and 500 sensors, same 64km2 map of Roma...
+
+
 """
 
 
@@ -278,7 +284,7 @@ graph_data_filename = 'test.gpickle' #results.graph_filename
 results_filename = 'second_bigloop_graph_cluster_trial.pcikle'
 """
 
-
+"""
 #still C207
 #a bigger map... Cologne Centraaaal...
 #data_file_path = '/home/user/MiniTaxiFleets/bigloop/' #results.graph_filepath
@@ -299,23 +305,22 @@ CITY_NAME = 'Roma'
 SIM_RUN_DATE = '021Jan'
 
 output_results_data_file_path =  '/home/user/ABMTANET/simulation_results/'
-
-
 """
+
+
 #C255!
 #running long-ass simulations... 4+ hours...
-data_file_path =  '/home/toshiba/MiniTaxiFleets/gpickle_road_network_data/' #'/home/toshiba/MiniTaxiFleets/bigloop/'
+data_file_path =  '/home/toshiba/ABMTANET/gpickle_road_network_data/' #'/home/toshiba/MiniTaxiFleets/bigloop/'
 #graph_data_filename = 'Highest_Protocol_SF_Central_Road_Network.gpickle' #results.graph_filename
 
 graph_data_filename = 'Highest_Protocol_Roma_Centrale_Road_Network.gpickle' #results.graph_filename
-results_filename = 'roma_centrale_test_sim_4hrs.pickle'
+#results_filename = 'roma_centrale_test_sim_4hrs.pickle'
 CITY_NAME = 'Roma'
-SIM_RUN_DATE = 'jan18'
+SIM_RUN_DATE = '2Ktaxis_30mins_expolos_23jan'
 
-passenger_trip_data_filename = 'roma_passenger_trip_data_dict_18Jan.pickle'
-sensor_data_filename = 'roma_sensor_pos_dict_18Jan.pickle'
-"""
-
+passenger_trip_data_filename = 'roma_passenger_trip_data_dict_21Jan.pickle'
+sensor_data_filename = 'roma_sensor_pos_dict_21Jan.pickle'
+output_results_data_file_path =  '/home/toshiba/ABMTANET/simulation_results/'
 
 
 """
@@ -356,11 +361,11 @@ model_space_height_m = HaversineDistPC2([MAX_LONG,MIN_LAT],[MAX_LONG, MAX_LAT])
 
 
 # Some key model parameters:
-LEN_SIM = 60*10 #simulation length, in real seconds, 1s=1sim_Step
+LEN_SIM = 60*30 #simulation length, in real seconds, 1s=1sim_Step
 
-NUM_TAXIS = 500 #15*64 # ?15 taxis per km^2
+NUM_TAXIS = 2000 #500 #15*64 # ?15 taxis per km^2
 NUM_SENSORS = 500
-NUM_TRIPS = 500
+NUM_TRIPS = 2000 #500
 
 V2V_MAXRANGE = 200 # metres
 V2I_MAXRANGE = 100 # metres...
@@ -369,7 +374,7 @@ MAX_V = 20*(1000/3600) # m/s (equiv to 20km/h)
 
 
 #Urban V2V LOS Model:
-V2V_EXPO_MODEL_COEFFS = [0,1]# [-2.36945344, -0.08361897]
+V2V_EXPO_MODEL_COEFFS = [-2.36945344, -0.08361897] #[0,1]# 
 NORM_DIST_SCALING_FACTOR = 1/500 #max metres?
 # Data Structures
 # initiation loop, set out all taxi positions, trips, sensors... etc...
@@ -438,7 +443,7 @@ with open((data_file_path+passenger_trip_data_filename),'rb') as handle:
 
 for key, values in passenger_trip_dict.items():
 
-        if key<500:
+        if key<NUM_TAXIS:
             #passenger_trip_id_counter +=1
             new_passenger_trip = PassengerTrip(key, values['start_pos'], values['start_node'], values['dest_pos'], values['dest_node'], values['route'])
 
@@ -446,7 +451,7 @@ for key, values in passenger_trip_dict.items():
             start_passenger_trip_longitude_array[key] = values['start_pos'][0]
             start_passenger_trip_latitude_array[key] = values['start_pos'][1]
 
-        if key>499:
+        if key>NUM_TAXIS:
 
             
             first_link_exit_time = road_network[values['route'][0]][values['route'][1]][0]['length']/MAX_V
@@ -621,6 +626,7 @@ start_code_time = timer()
 passenger_trip_results_dict = dict()
 taxi_route_break_dict = dict()
 
+v2v_sharing_loc_dict = dict()
 
 for time_step in range(0,LEN_SIM):
 
@@ -722,6 +728,10 @@ for time_step in range(0,LEN_SIM):
     print('len of shuffle_index= %i' % (len(shuffle_index)))
 
 
+    v2v_sharing_latitudes_array = np.zeros(len(shuffle_index))
+    v2v_sharing_longitudes_array = np.zeros(len(shuffle_index))
+    v2v_sharing_counter = 0
+
     for i in shuffle_index:
 
         Ataxi_id = taxis_taxis_within_range_index[0][i]
@@ -738,7 +748,12 @@ for time_step in range(0,LEN_SIM):
             #print('taxiA %i exchanged with taxiB %i at t=%i' % (Ataxi_id, Btaxi_id, time_step))
             #print(combined_taxis_message_sets)
 
+            #RECORD mid-points of V2V sharing to generate 'heat-map'?
+            v2v_sharing_latitudes_array[v2v_sharing_counter] = (taxi_latitude_array[Ataxi_id]+taxi_latitude_array[Btaxi_id])/2
+            v2v_sharing_longitudes_array[v2v_sharing_counter] = (taxi_longitude_array[Ataxi_id]+taxi_longitude_array[Btaxi_id])/2
+            v2v_sharing_counter +=1
 
+    v2v_sharing_loc_dict[time_step] = {'latitude':v2v_sharing_latitudes_array, 'longitude':v2v_sharing_longitudes_array,'len':v2v_sharing_counter}
 
 
     """ ORIGINAL V2V EXCHANGE CODE:
@@ -865,9 +880,9 @@ for time_step in range(0,LEN_SIM):
 
 
 
-    #Update Central Intelligence Matrix (CIM)
-    taxi_longitude_array[taxi.id] = taxi.pos[0]
-    taxi_latitude_array[taxi.id] = taxi.pos[1]
+        #Update Central Intelligence Matrix (CIM)
+        taxi_longitude_array[taxi.id] = taxi.pos[0]
+        taxi_latitude_array[taxi.id] = taxi.pos[1]
 
 
 end_code_time = timer()
@@ -899,7 +914,7 @@ with open((output_results_data_file_path +('%s_passenger_trip_results_%s.pickle'
 
 
 #save general model details to make plotting easier?
-general_model_params_dict = {'city':CITY_NAME,'model_width':model_space_width_m, 'model_height':model_space_height_m, 'sim_len':LEN_SIM, 'num_taxis':NUM_TAXIS, 'num_sensors':NUM_SENSORS, 'num_trips':NUM_TRIPS, 'max_v':MAX_V}
+general_model_params_dict = {'city':CITY_NAME,'model_width':model_space_width_m, 'model_height':model_space_height_m, 'sim_len':LEN_SIM, 'num_taxis':NUM_TAXIS, 'num_sensors':NUM_SENSORS, 'num_trips':NUM_TRIPS, 'max_v':MAX_V, 'min_lat': MIN_LAT, 'max_lat':MAX_LAT, 'min_lon':MIN_LONG,'max_lon':MAX_LONG}
 
 with open((output_results_data_file_path +('%s_general_model_params_%s.pickle' % (CITY_NAME,SIM_RUN_DATE))), 'wb') as handle3:
     pickle.dump(general_model_params_dict, handle3, protocol = pickle.HIGHEST_PROTOCOL)
@@ -927,6 +942,9 @@ passenger_trip_start_locs_dict = {'latitude': start_passenger_trip_latitude_arra
 with open((output_results_data_file_path+('%s_passenger_trip_start_locs_dict_%s.pickle' % (CITY_NAME, SIM_RUN_DATE))), 'wb') as handle6:
     pickle.dump(passenger_trip_start_locs_dict, handle6, protocol = pickle.HIGHEST_PROTOCOL)
 
+
+with open((output_results_data_file_path +'%s_v2v_sharing_loc_heatmap_dict_%s.pickle' %(CITY_NAME, SIM_RUN_DATE)), 'wb') as handle7:
+    pickle.dump( v2v_sharing_loc_dict, handle7, protocol=pickle.HIGHEST_PROTOCOL)
 
 """
 ######
