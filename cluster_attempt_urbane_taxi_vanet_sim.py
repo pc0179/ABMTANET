@@ -289,14 +289,18 @@ results_filename = 'second_bigloop_graph_cluster_trial.pcikle'
 data_file_path = '/home/user/ABMTANET/gpickle_road_network_data/' #results.graph_filepath
 #graph_data_filename = 'Highest_Protocol_SF_Central_Road_Network.gpickle' #results.graph_filename
 #results_filename = 'SF_central_test_sim.pickle'
-graph_data_filename = 'cologne_central_8km2.gpickle' # 'Highest_Protocol_Roma_Centrale_Road_Network.gpickle' #results.graph_filename
+#graph_data_filename = 'cologne_central_8km2.gpickle' # 'Highest_Protocol_Roma_Centrale_Road_Network.gpickle' #results.graph_filename
+#passenger_trip_data_filename = 'koln_passenger_trip_data_dict_400trips_21jan.pickle' # 'roma_passenger_trip_data_dict_18Jan.pickle'
+#sensor_data_filename = 'koln_sensor_pos_dict_400trips_21jan.pickle' #'
+#CITY_NAME = 'koln'
+#SIM_RUN_DATE = '200taxis_2hrs_23Jan'
 
 
-passenger_trip_data_filename = 'koln_passenger_trip_data_dict_400trips_21jan.pickle' # 'roma_passenger_trip_data_dict_18Jan.pickle'
-sensor_data_filename = 'koln_sensor_pos_dict_400trips_21jan.pickle' #'roma_sensor_pos_dict_18Jan.pickle'
-
-CITY_NAME = 'koln'
-SIM_RUN_DATE = '200taxis_2hrs_21Jan'
+graph_data_filename = 'Highest_Protocol_Roma_Centrale_Road_Network.gpickle'
+passenger_trip_data_filename = 'roma_passenger_trip_data_dict_18Jan.pickle'
+sensor_data_filename = 'roma_sensor_pos_dict_18Jan.pickle'
+CITY_NAME = 'roma'
+SIM_RUN_DATE = '500taxis_2hrs_23Jan'
 
 output_results_data_file_path =  '/home/user/ABMTANET/simulation_results/'
 
@@ -358,9 +362,9 @@ model_space_height_m = HaversineDistPC2([MAX_LONG,MIN_LAT],[MAX_LONG, MAX_LAT])
 # Some key model parameters:
 LEN_SIM = 60*60*2 #simulation length, in real seconds, 1s=1sim_Step
 
-NUM_TAXIS = 200 #500 #15*64 # ?15 taxis per km^2
-NUM_SENSORS = 50 #500
-NUM_TRIPS = 200 #500
+NUM_TAXIS = 500 #500 #15*64 # ?15 taxis per km^2
+NUM_SENSORS = 500 #500
+NUM_TRIPS = 500 #500
 
 V2V_MAXRANGE = 200 # metres
 V2I_MAXRANGE = 100 # metres...
@@ -622,6 +626,8 @@ passenger_trip_results_dict = dict()
 taxi_route_break_dict = dict()
 
 
+V2V_loc_dict = dict()
+
 for time_step in range(0,LEN_SIM):
 
     print('simulation time step = %i' % time_step)
@@ -737,6 +743,9 @@ for time_step in range(0,LEN_SIM):
             taxi_message_set_dict[Btaxi_id] = combined_taxis_message_sets
             #print('taxiA %i exchanged with taxiB %i at t=%i' % (Ataxi_id, Btaxi_id, time_step))
             #print(combined_taxis_message_sets)
+            
+
+# record v2v exchange locations here...
 
 
 
@@ -866,8 +875,8 @@ for time_step in range(0,LEN_SIM):
 
 
     #Update Central Intelligence Matrix (CIM)
-    taxi_longitude_array[taxi.id] = taxi.pos[0]
-    taxi_latitude_array[taxi.id] = taxi.pos[1]
+        taxi_longitude_array[taxi.id] = taxi.pos[0]
+        taxi_latitude_array[taxi.id] = taxi.pos[1]
 
 
 end_code_time = timer()

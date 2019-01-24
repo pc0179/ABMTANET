@@ -18,8 +18,8 @@ plt.ion()
 #sim_data_results_filepath = '/home/toshiba/MiniTaxiFleets/bigloop/simulation_results/'
 
 #C207
-#sim_data_results_filepath = '/home/user/ABMTANET/simulation_results/'
-sim_data_results_filepath = '/home/user/Dropbox/tanet_sim_results/simulation_results/'
+sim_data_results_filepath = '/home/user/ABMTANET/simulation_results/'
+#sim_data_results_filepath = '/home/user/Dropbox/tanet_sim_results/simulation_results/'
 
 #general model params
 # CITY_NAME = 'Roma' #'SF'
@@ -30,8 +30,18 @@ sim_data_results_filepath = '/home/user/Dropbox/tanet_sim_results/simulation_res
 #SIM_RUN_DATE = '200taxis_2hrs_21Jan'
 
 
-CITY_NAME = 'Roma'
-SIM_RUN_DATE = '8hrs_expolos_21jan'
+#CITY_NAME = 'Roma'
+#SIM_RUN_DATE = '8hrs_expolos_21jan'
+
+#CITY_NAME = 'koln'
+#SIM_RUN_DATE = '200taxis_2hrs_23Jan'
+
+CITY_NAME = 'roma'
+SIM_RUN_DATE = '500taxis_2hrs_23Jan'
+
+
+#CITY_NAME = 'Roma'
+#SIM_RUN_DATE = '2Ktaxis_30mins_expolos_23jan'
 
 general_model_params_filename = '%s_general_model_params_%s.pickle' % (CITY_NAME,SIM_RUN_DATE)
  
