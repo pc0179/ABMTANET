@@ -15,10 +15,10 @@ plt.ion()
 
 
 #C225
-sim_data_results_filepath = '/home/toshiba/ABMTANET/simulation_results/'
+#sim_data_results_filepath = '/home/toshiba/ABMTANET/simulation_results/'
 
 #C207
-#sim_data_results_filepath = '/home/user/ABMTANET/simulation_results/'
+sim_data_results_filepath = '/home/user/ABMTANET/simulation_results/'
 
 #general model params
 #CITY_NAME = 'Roma' #'SF'
@@ -148,8 +148,8 @@ for i in range(a,N):
     lon, lat = list(zip(*taxi_pos_dict[i]))
     ax.plot(lon,lat,c=plot_colour)
 
-ax.plot(sensor_locations_dict['lon'],sensor_locations_dict['lat'],'ok')
-ax.plot(passenger_trip_start_locs_dict['longitude'], passenger_trip_start_locs_dict['latitude'],'*g')
+#ax.plot(sensor_locations_dict['lon'],sensor_locations_dict['lat'],'ok')
+#ax.plot(passenger_trip_start_locs_dict['longitude'], passenger_trip_start_locs_dict['latitude'],'*g')
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
 ax.set_title('%s' % CITY_NAME)
@@ -165,22 +165,31 @@ with open(sim_data_results_filepath+v2v_exchanges_filname, 'rb') as handle6:
 
 a = 0
 N = 500
-fig, ax = plt.subplots()
-plotting_colours = iter(plt.cm.rainbow(np.linspace(0,1,N-a)))
-for i in range(a,N):
-    plot_colour = next(plotting_colours)
-    lon, lat = list(zip(*taxi_pos_dict[i]))
-    ax.plot(lon,lat,c=plot_colour)
+#fig, ax = plt.subplots()
+#plotting_colours = iter(plt.cm.rainbow(np.linspace(0,1,N-a)))
+#for i in range(a,N):
+#    plot_colour = next(plotting_colours)
+#    lon, lat = list(zip(*taxi_pos_dict[i]))
+#    ax.plot(lon,lat,c=plot_colour)
 
 
-fig, ax = plt.subplots()
+#plt.figure()
+#plt.plot(lon2,lat2,'+k')
+#plt.xlabel('longitude')
+#plt.ylabel('latitude')
+#plt.show()
+
+
+
+#fig, ax = plt.subplots()
 T = 500 #seconds of simulations, ie iterations/time_steps...
-plotting_colours = iter(plt.cm.rainbow(np.linspace(0,1,T)))
+#plotting_colours = iter(plt.cm.rainbow(np.linspace(0,1,T)))
 
-Xedges = np.linspace(MIN_LON,MAX_LON,16)
-Yedges = np.linspace(MIN_LAT,MAX_LAT,16)
+slices = 160 #8km... width...8000/slices = width of sample box...
+Xedges = np.linspace(MIN_LON,MAX_LON,slices)
+Yedges = np.linspace(MIN_LAT,MAX_LAT,slices)
 histo2d_dict = dict()
-
+sum_H = 0
 for t in range(0,T):
 #    plot_colour = next(plotting_colours)
     lon2 = v2v_exchange_locs_dict[t]['longitude']
@@ -189,20 +198,62 @@ for t in range(0,T):
 
     histo2d_dict[t] = H
 
+    sum_H += H 
+
+
+#ax.set_xlabel('Longitude')
+#ax.set_ylabel('Latitude')
+#ax.set_title('%s' % CITY_NAME)
+#plt.show()
+
+
+total_v2v_exchanges = 0
+for i in range(sum_H.shape[0]):
+    total_v2v_exchanges += np.sum(sum_H[i])
+# note that 3.7 million v2v exchanges in 500 seconds seems a tad much, 7.5k exchanges every second? between 2k taxis... something must be up... investigate further... laterz
+
 #    ax.plot(lon2,lat2,'*k')
 #    ax.plot(lon2,lat2, c=plot_colour, marker='+')
 #ax.plot(sensor_locations_dict['lon'],sensor_locations_dict['lat'],'ok')
 #ax.plot(passenger_trip_start_locs_dict['longitude'], passenger_trip_start_locs_dict['latitude'],'*g')
-ax.set_xlabel('Longitude')
-ax.set_ylabel('Latitude')
-ax.set_title('%s' % CITY_NAME)
+
+fig, ax0 = plt.subplots(1,1)
+c = ax0.pcolor(sum_H)
+ax0.set_title('V2V Exchange Heat-map, %s, total: %i, NUM_TAXIS: %i' % (CITY_NAME, int(total_v2v_exchanges), NUM_TAXIS))
+fig.tight_layout()
 plt.show()
 
 
-plt.figure()
-plt.plot(lon2,lat2,'+k')
-plt.xlabel('longitude')
-plt.ylabel('latitude')
+#comparing heatmaps between 'real' rome traces and taxi-agent traces....
+
+real_taxi_vanet_data_filename = 'No_Pandas_CORRECTED_VANET_rome_combined_29_days.pickle'
+real_taxi_data_filepath = '/home/user/ClusterSetUp-All-to-One/Rome-Data/'
+with open(real_taxi_data_filepath+real_taxi_vanet_data_filename, 'rb') as handle5:
+    real_taxi_data_vanet_dict = pickle.load(handle5)
+
+#real_taxi_vanet_histo2d_dict = dict()
+sum_real_taxi_vanet_H2 = 0
+# once again, finding the mid-points of the 'real' V2V exchanges....
+#minor memory issues... total 'real' data is big... 600mb compressed?
+for key, values in real_taxi_data_vanet_dict.items():
+
+    Alon, Alat = np.array(list(zip(*values['Alonglat'])))
+    Blon, Blat = np.array(list(zip(*values['Blonglat'])))
+
+    v2v_mid_point_longitude_array = (Alon+Blon)/2
+    v2v_mid_point_latitude_array = (Alat+Blat)/2 
+    H2, xedges2, yedges2 = np.histogram2d(v2v_mid_point_longitude_array, v2v_mid_point_latitude_array, bins=(Xedges,Yedges))
+
+    sum_real_taxi_vanet_H2 += H2
+
+total_real_v2v_exchanges = 0
+for i in range(sum_real_taxi_vanet_H2.shape[0]):
+    total_real_v2v_exchanges += np.sum(sum_real_taxi_vanet_H2[i])
+
+fig, ax1 = plt.subplots(1,1)
+c = ax1.pcolor(sum_real_taxi_vanet_H2)
+ax1.set_title('real... V2V Exchange Heat-map, %s, total: %i, NUM of real TAXIS: 2250' % (CITY_NAME, int(total_real_v2v_exchanges)))
+fig.tight_layout()
 plt.show()
 
 
