@@ -26,35 +26,44 @@ rome_real_tanet_data_files = ['No_Pandas_VANET_rome_august_edit_combined_3_days.
 rome_numfolded_days = [3,7,14,21,29]
 #output_filepath = '/home/user/ABMTANET/v2v_heat_maps/rome/'
 output_filepath = '/home/user/ABMTANET/two_hop_count/rome/'
-"""
+
 # San Francisco
 real_tanet_data_filepath = '/home/user/ClusterSetUp-All-to-One/SF-Data/'
 sf_real_tanet_data_files = ['No_Pandas_CORRECTED_SF_1_day_VANET.pickle', 'No_Pandas_CORRECTED_VANET_SF_2_days.pickle', 'No_Pandas_CORRECTED_SF_4_days_VANET.pickle', 'No_Pandas_CORRECTED_VANET_SF_6_days.pickle','No_Pandas_CORRECTED_SF_9_day_VANET.pickle']
 sf_numfolded_days = [1,2,4,6,9]
 #output_filepath = '/home/user/ABMTANET/v2v_heat_maps/rome/'
 output_filepath = '/home/user/ABMTANET/two_hop_count/SF/'
-
-
-
-
 """
+
+
+# Currnently on C225!
+# San Francisco
+real_tanet_data_filepath = '/home/toshiba/SF-Data/'
+sf_real_tanet_data_files = ['No_Pandas_CORRECTED_SF_1_day_VANET.pickle', 'No_Pandas_CORRECTED_VANET_SF_2_days.pickle', 'No_Pandas_CORRECTED_SF_4_days_VANET.pickle', 'No_Pandas_CORRECTED_VANET_SF_6_days.pickle','No_Pandas_CORRECTED_SF_9_day_VANET.pickle']
+sf_numfolded_days = [1,2,4,6,9]
+output_filepath = '/home/toshiba/ABMTANET/v2v_heat_maps/SF/'
+#output_filepath = '/home/user/ABMTANET/two_hop_count/SF/'
+
+
+
+
 #V2V EXCHANGE HEAT MAP ANALYSIS
 
 # purely to get the longitudes/latitudes needed for 2d histogram...
-CITY_NAME = 'Roma'
-SIM_RUN_DATE = '2Ktaxis_30mins_expolos_23jan'
-sim_data_results_filepath = '/home/user/ABMTANET/simulation_results/'
-general_model_params_filename = '%s_general_model_params_%s.pickle' % (CITY_NAME,SIM_RUN_DATE)
+#CITY_NAME = 'Roma'
+#SIM_RUN_DATE = '2Ktaxis_30mins_expolos_23jan'
+#sim_data_results_filepath = '/home/user/ABMTANET/simulation_results/'
+#general_model_params_filename = '%s_general_model_params_%s.pickle' % (CITY_NAME,SIM_RUN_DATE)
 
-with open((sim_data_results_filepath+general_model_params_filename),'rb') as handle3:
-    general_model_params_dict = pickle.load(handle3)
+#with open((sim_data_results_filepath+general_model_params_filename),'rb') as handle3:
+#    general_model_params_dict = pickle.load(handle3)
 
-MIN_LAT = general_model_params_dict['min_lat']
-MAX_LAT = general_model_params_dict['max_lat']
-MIN_LON = general_model_params_dict['min_lon']
-MAX_LON = general_model_params_dict['max_lon']
+MIN_LAT = 37.733 #general_model_params_dict['min_lat']
+MAX_LAT = 37.805 #general_model_params_dict['max_lat']
+MIN_LON = -122.479 #general_model_params_dict['min_lon']
+MAX_LON = -122.388 #general_model_params_dict['max_lon']
 
-handle3.close()
+#handle3.close()
 
 
 #comparing heatmaps between 'real' rome traces and taxi-agent traces....
@@ -66,7 +75,7 @@ slices = 160 #8km... width...8000/slices = width of sample box...
 Xedges = np.linspace(MIN_LON,MAX_LON,slices)
 Yedges = np.linspace(MIN_LAT,MAX_LAT,slices)
 
-for dataset in rome_real_tanet_data_files:
+for dataset in sf_real_tanet_data_files:
 
     with open(real_tanet_data_filepath+dataset, 'rb') as handle0:
         real_taxi_data_vanet_dict = pickle.load(handle0)
@@ -91,7 +100,7 @@ for dataset in rome_real_tanet_data_files:
         #total_real_v2v_exchanges += np.sum(sum_real_taxi_vanet_H2[i])
 
 
-    output_filename = 'rome_%i_days_v2v_heatmap_data.pickle' % rome_numfolded_days[internal_file_counter]
+    output_filename = 'sf_%i_days_v2v_heatmap_data.pickle' % sf_numfolded_days[internal_file_counter]
     internal_file_counter +=1
 
 
@@ -108,8 +117,14 @@ for dataset in rome_real_tanet_data_files:
     handle1.close()
 
 
-"""
 
+
+
+
+
+
+"""
+#V2V 2 Hop Count...
 
 
 
@@ -164,7 +179,7 @@ for dataset in sf_real_tanet_data_files:
 
 
 
-"""
+
 fig, ax1 = plt.subplots(1,1)
 c = ax1.pcolor(sum_real_taxi_vanet_H2)
 ax1.set_title('real... V2V Exchange Heat-map, %s, total: %i, NUM of real TAXIS: 2250' % (CITY_NAME, int(total_real_v2v_exchanges)))
