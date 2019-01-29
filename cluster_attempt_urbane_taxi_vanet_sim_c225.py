@@ -295,14 +295,14 @@ results_filename = 'second_bigloop_graph_cluster_trial.pcikle'
 data_file_path = '/home/user/ABMTANET/gpickle_road_network_data/' #results.graph_filepath
 #graph_data_filename = 'Highest_Protocol_SF_Central_Road_Network.gpickle' #results.graph_filename
 #results_filename = 'SF_central_test_sim.pickle'
-graph_data_filename = 'cologne_central_8km2.gpickle' # 'Highest_Protocol_Roma_Centrale_Road_Network.gpickle' #results.graph_filename
+graph_data_filename = 'Highest_Protocol_Roma_Centrale_Road_Network.gpickle' #results.graph_filename
+#results_filename = 'roma_centrale_test_sim_4hrs.pickle'
 
+passenger_trip_data_filename = 'roma_passenger_trip_data_dict_18Jan.pickle'
+sensor_data_filename = 'roma_sensor_pos_dict_18Jan.pickle'
 
-passenger_trip_data_filename = 'koln_passenger_trip_data_dict_400trips_21jan.pickle' # 'roma_passenger_trip_data_dict_18Jan.pickle'
-sensor_data_filename = 'koln_sensor_pos_dict_400trips_21jan.pickle' #'roma_sensor_pos_dict_18Jan.pickle'
-
-CITY_NAME = 'koln'
-SIM_RUN_DATE = '200taxis_2hrs_21Jan'
+CITY_NAME = 'Roma'
+SIM_RUN_DATE = '021Jan'
 
 output_results_data_file_path =  '/home/user/ABMTANET/simulation_results/'
 """
@@ -311,15 +311,18 @@ output_results_data_file_path =  '/home/user/ABMTANET/simulation_results/'
 #C255!
 #running long-ass simulations... 4+ hours...
 data_file_path =  '/home/toshiba/ABMTANET/gpickle_road_network_data/' #'/home/toshiba/MiniTaxiFleets/bigloop/'
-#graph_data_filename = 'Highest_Protocol_SF_Central_Road_Network.gpickle' #results.graph_filename
-
-graph_data_filename = 'Highest_Protocol_Roma_Centrale_Road_Network.gpickle' #results.graph_filename
+graph_data_filename = 'Highest_Protocol_SF_Central_Road_Network.gpickle' #results.graph_filename
+#graph_data_filename = 'Highest_Protocol_Roma_Centrale_Road_Network.gpickle' #results.graph_filename
 #results_filename = 'roma_centrale_test_sim_4hrs.pickle'
-CITY_NAME = 'Roma'
-SIM_RUN_DATE = '2Ktaxis_30mins_expolos_23jan'
 
-passenger_trip_data_filename = 'roma_passenger_trip_data_dict_21Jan.pickle'
-sensor_data_filename = 'roma_sensor_pos_dict_21Jan.pickle'
+#CITY_NAME = 'Roma'
+#SIM_RUN_DATE = '2Ktaxis_4hrs_v2vdata_25jan'
+
+CITY_NAME = 'sf'
+SIM_RUN_DATE = '2Ktaxis_4hrs_v2vdata_28jan'
+
+passenger_trip_data_filename = 'sf_passenger_trip_data_dict_28Jan.pickle'
+sensor_data_filename = 'sf_sensor_pos_dict_28Jan.pickle'
 output_results_data_file_path =  '/home/toshiba/ABMTANET/simulation_results/'
 
 
@@ -361,13 +364,11 @@ model_space_height_m = HaversineDistPC2([MAX_LONG,MIN_LAT],[MAX_LONG, MAX_LAT])
 
 
 # Some key model parameters:
-
-LEN_SIM = 60*30 #simulation length, in real seconds, 1s=1sim_Step
+LEN_SIM = 60*60*4 #simulation length, in real seconds, 1s=1sim_Step
 
 NUM_TAXIS = 2000 #500 #15*64 # ?15 taxis per km^2
 NUM_SENSORS = 500
 NUM_TRIPS = 2000 #500
-
 
 V2V_MAXRANGE = 200 # metres
 V2I_MAXRANGE = 100 # metres...
@@ -376,9 +377,7 @@ MAX_V = 20*(1000/3600) # m/s (equiv to 20km/h)
 
 
 #Urban V2V LOS Model:
-
 V2V_EXPO_MODEL_COEFFS = [-2.36945344, -0.08361897] #[0,1]# 
-
 NORM_DIST_SCALING_FACTOR = 1/500 #max metres?
 # Data Structures
 # initiation loop, set out all taxi positions, trips, sensors... etc...
@@ -447,16 +446,13 @@ with open((data_file_path+passenger_trip_data_filename),'rb') as handle:
 
 for key, values in passenger_trip_dict.items():
 
-
         if key<NUM_TAXIS:
-
             #passenger_trip_id_counter +=1
             new_passenger_trip = PassengerTrip(key, values['start_pos'], values['start_node'], values['dest_pos'], values['dest_node'], values['route'])
 
             passenger_trip_list.append(new_passenger_trip)
             start_passenger_trip_longitude_array[key] = values['start_pos'][0]
             start_passenger_trip_latitude_array[key] = values['start_pos'][1]
-
 
         if key>NUM_TAXIS:
 
@@ -633,7 +629,18 @@ start_code_time = timer()
 passenger_trip_results_dict = dict()
 taxi_route_break_dict = dict()
 
+
+
+slices = 160 #8km... width...8000/slices = width of sample box...
+Xedges = np.linspace(MIN_LONG,MAX_LONG,slices)
+Yedges = np.linspace(MIN_LAT,MAX_LAT,slices)
+
+
 v2v_sharing_loc_dict = dict()
+v2v_edge_data_dict = dict()
+
+
+
 
 for time_step in range(0,LEN_SIM):
 
@@ -739,10 +746,15 @@ for time_step in range(0,LEN_SIM):
     v2v_sharing_longitudes_array = np.zeros(len(shuffle_index))
     v2v_sharing_counter = 0
 
+    v2v_edge_data_list = list()
+
     for i in shuffle_index:
 
         Ataxi_id = taxis_taxis_within_range_index[0][i]
         Btaxi_id = taxis_taxis_within_range_index[1][i]
+
+        v2v_edge_data_list.append(tuple([Ataxi_id, Btaxi_id]))
+        #record V2V network... every timestep?
 
         Ataxi_message_set = taxi_message_set_dict[Ataxi_id]
         Btaxi_message_set = taxi_message_set_dict[Btaxi_id]
@@ -760,8 +772,15 @@ for time_step in range(0,LEN_SIM):
             v2v_sharing_longitudes_array[v2v_sharing_counter] = (taxi_longitude_array[Ataxi_id]+taxi_longitude_array[Btaxi_id])/2
             v2v_sharing_counter +=1
 
-    v2v_sharing_loc_dict[time_step] = {'latitude':v2v_sharing_latitudes_array, 'longitude':v2v_sharing_longitudes_array,'len':v2v_sharing_counter}
+    #v2v_sharing_loc_dict[time_step] = {'latitude':v2v_sharing_latitudes_array, 'longitude':v2v_sharing_longitudes_array,'len':v2v_sharing_counter}
 
+    #quick 2d histogram for v2v sharing exchange location recording...
+    H, xedges2, yedges2 = np.histogram2d(v2v_sharing_longitudes_array,v2v_sharing_latitudes_array, bins=(Xedges, Yedges))
+    v2v_sharing_loc_dict[time_step] = H
+
+
+
+    v2v_edge_data_dict[time_step] = v2v_edge_data_list
 
     """ ORIGINAL V2V EXCHANGE CODE:
 
@@ -912,20 +931,20 @@ sensor_locs_dict = {'lon':sensor_longitude_array, 'lat':sensor_latitude_array}
 with open((output_results_data_file_path +('%s_sensor_locations_%s.pickle' % (CITY_NAME,SIM_RUN_DATE))), 'wb') as handle3:
     pickle.dump(sensor_locs_dict, handle3, protocol = pickle.HIGHEST_PROTOCOL)
 
-with open((output_results_data_file_path +('%s_link_traffic_count_%s.pickle' % (CITY_NAME, SIM_RUN_DATE))), 'wb') as handle3:
-    pickle.dump(link_dict, handle3, protocol = pickle.HIGHEST_PROTOCOL)
+#with open((output_results_data_file_path +('%s_link_traffic_count_%s.pickle' % (CITY_NAME, SIM_RUN_DATE))), 'wb') as handle3:
+#    pickle.dump(link_dict, handle3, protocol = pickle.HIGHEST_PROTOCOL)
 
 
-with open((output_results_data_file_path +('%s_passenger_trip_results_%s.pickle' % (CITY_NAME,SIM_RUN_DATE))), 'wb') as handle3:
-    pickle.dump(passenger_trip_results_dict, handle3, protocol = pickle.HIGHEST_PROTOCOL)
-
+with open((output_results_data_file_path +('%s_passenger_trip_results_%s.pickle' % (CITY_NAME,SIM_RUN_DATE))), 'wb') as handle4:
+    pickle.dump(passenger_trip_results_dict, handle4, protocol = pickle.HIGHEST_PROTOCOL)
+handle4.close()
 
 #save general model details to make plotting easier?
 general_model_params_dict = {'city':CITY_NAME,'model_width':model_space_width_m, 'model_height':model_space_height_m, 'sim_len':LEN_SIM, 'num_taxis':NUM_TAXIS, 'num_sensors':NUM_SENSORS, 'num_trips':NUM_TRIPS, 'max_v':MAX_V, 'min_lat': MIN_LAT, 'max_lat':MAX_LAT, 'min_lon':MIN_LONG,'max_lon':MAX_LONG}
 
-with open((output_results_data_file_path +('%s_general_model_params_%s.pickle' % (CITY_NAME,SIM_RUN_DATE))), 'wb') as handle3:
-    pickle.dump(general_model_params_dict, handle3, protocol = pickle.HIGHEST_PROTOCOL)
-
+with open((output_results_data_file_path +('%s_general_model_params_%s.pickle' % (CITY_NAME,SIM_RUN_DATE))), 'wb') as handle5:
+    pickle.dump(general_model_params_dict, handle5, protocol = pickle.HIGHEST_PROTOCOL)
+handle5.close()
 
 # save taxi data stored in class variables...
 
@@ -935,23 +954,52 @@ for taxi in taxi_agent_list:
 
     taxi_hist_pos_dict[taxi.id] = taxi.old_pos_list
  
-with open((output_results_data_file_path +('%s_taxi_agent_position_data_%s.pickle' % (CITY_NAME,SIM_RUN_DATE))), 'wb') as handle4:
-    pickle.dump(taxi_hist_pos_dict, handle4, protocol = pickle.HIGHEST_PROTOCOL)
+with open((output_results_data_file_path +('%s_taxi_agent_position_data_%s.pickle' % (CITY_NAME,SIM_RUN_DATE))), 'wb') as handle6:
+    pickle.dump(taxi_hist_pos_dict, handle6, protocol = pickle.HIGHEST_PROTOCOL)
+handle6.close()
 
 
-
-with open((output_results_data_file_path +('%s_taxi_route_break_dict_%s.pickle' % (CITY_NAME,SIM_RUN_DATE))), 'wb') as handle5:
-    pickle.dump(taxi_route_break_dict, handle5, protocol = pickle.HIGHEST_PROTOCOL)
+#with open((output_results_data_file_path +('%s_taxi_route_break_dict_%s.pickle' % (CITY_NAME,SIM_RUN_DATE))), 'wb') as handle5:
+#    pickle.dump(taxi_route_break_dict, handle5, protocol = pickle.HIGHEST_PROTOCOL)
 
 ### save trip start points...
 passenger_trip_start_locs_dict = {'latitude': start_passenger_trip_latitude_array, 'longitude':start_passenger_trip_longitude_array}
 
-with open((output_results_data_file_path+('%s_passenger_trip_start_locs_dict_%s.pickle' % (CITY_NAME, SIM_RUN_DATE))), 'wb') as handle6:
-    pickle.dump(passenger_trip_start_locs_dict, handle6, protocol = pickle.HIGHEST_PROTOCOL)
+with open((output_results_data_file_path+('%s_passenger_trip_start_locs_dict_%s.pickle' % (CITY_NAME, SIM_RUN_DATE))), 'wb') as handle7:
+    pickle.dump(passenger_trip_start_locs_dict, handle7, protocol = pickle.HIGHEST_PROTOCOL)
+handle7.close()
+
+with open((output_results_data_file_path +'%s_v2v_sharing_loc_heatmap_dict_%s.pickle' %(CITY_NAME, SIM_RUN_DATE)), 'wb') as handle8:
+    pickle.dump( v2v_sharing_loc_dict, handle8, protocol=pickle.HIGHEST_PROTOCOL)
+handle8.close()
+
+# v2v edge data....
+with open((output_results_data_file_path +'%s_v2v_edge_data_dict_%s.pickle' %(CITY_NAME, SIM_RUN_DATE)), 'wb') as handle9:
+    pickle.dump(v2v_edge_data_dict, handle9, protocol=pickle.HIGHEST_PROTOCOL)
+handle9.close()
 
 
-with open((output_results_data_file_path +'%s_v2v_sharing_loc_heatmap_dict_%s.pickle' %(CITY_NAME, SIM_RUN_DATE)), 'wb') as handle7:
-    pickle.dump( v2v_sharing_loc_dict, handle7, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+"""
+#for those memory disaster moments...
+
+for i in range(10001,12000):
+    v2v_edge_data_dict.pop(i)
+
+
+H = np.zeros((159,159))
+#jesus h fuck. living on the fucking edge here of memory.
+for key, values in v2v_sharing_loc_dict.items():
+
+    H+= values
+
+with open((output_results_data_file_path +'%s_v2v_sharing_loc_heatmap_dict_%s.pickle' %(CITY_NAME, SIM_RUN_DATE)), 'wb') as handle10:
+    pickle.dump( H, handle10, protocol=pickle.HIGHEST_PROTOCOL)
+handle10.close()
+
+"""
+
 
 """
 ######
