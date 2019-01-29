@@ -295,14 +295,14 @@ results_filename = 'second_bigloop_graph_cluster_trial.pcikle'
 data_file_path = '/home/user/ABMTANET/gpickle_road_network_data/' #results.graph_filepath
 #graph_data_filename = 'Highest_Protocol_SF_Central_Road_Network.gpickle' #results.graph_filename
 #results_filename = 'SF_central_test_sim.pickle'
-graph_data_filename = 'Highest_Protocol_Roma_Centrale_Road_Network.gpickle' #results.graph_filename
-#results_filename = 'roma_centrale_test_sim_4hrs.pickle'
+graph_data_filename = 'cologne_central_8km2.gpickle' # 'Highest_Protocol_Roma_Centrale_Road_Network.gpickle' #results.graph_filename
 
-passenger_trip_data_filename = 'roma_passenger_trip_data_dict_18Jan.pickle'
-sensor_data_filename = 'roma_sensor_pos_dict_18Jan.pickle'
 
-CITY_NAME = 'Roma'
-SIM_RUN_DATE = '021Jan'
+passenger_trip_data_filename = 'koln_passenger_trip_data_dict_400trips_21jan.pickle' # 'roma_passenger_trip_data_dict_18Jan.pickle'
+sensor_data_filename = 'koln_sensor_pos_dict_400trips_21jan.pickle' #'roma_sensor_pos_dict_18Jan.pickle'
+
+CITY_NAME = 'koln'
+SIM_RUN_DATE = '200taxis_2hrs_21Jan'
 
 output_results_data_file_path =  '/home/user/ABMTANET/simulation_results/'
 """
@@ -361,11 +361,13 @@ model_space_height_m = HaversineDistPC2([MAX_LONG,MIN_LAT],[MAX_LONG, MAX_LAT])
 
 
 # Some key model parameters:
+
 LEN_SIM = 60*30 #simulation length, in real seconds, 1s=1sim_Step
 
 NUM_TAXIS = 2000 #500 #15*64 # ?15 taxis per km^2
 NUM_SENSORS = 500
 NUM_TRIPS = 2000 #500
+
 
 V2V_MAXRANGE = 200 # metres
 V2I_MAXRANGE = 100 # metres...
@@ -374,7 +376,9 @@ MAX_V = 20*(1000/3600) # m/s (equiv to 20km/h)
 
 
 #Urban V2V LOS Model:
+
 V2V_EXPO_MODEL_COEFFS = [-2.36945344, -0.08361897] #[0,1]# 
+
 NORM_DIST_SCALING_FACTOR = 1/500 #max metres?
 # Data Structures
 # initiation loop, set out all taxi positions, trips, sensors... etc...
@@ -443,13 +447,16 @@ with open((data_file_path+passenger_trip_data_filename),'rb') as handle:
 
 for key, values in passenger_trip_dict.items():
 
+
         if key<NUM_TAXIS:
+
             #passenger_trip_id_counter +=1
             new_passenger_trip = PassengerTrip(key, values['start_pos'], values['start_node'], values['dest_pos'], values['dest_node'], values['route'])
 
             passenger_trip_list.append(new_passenger_trip)
             start_passenger_trip_longitude_array[key] = values['start_pos'][0]
             start_passenger_trip_latitude_array[key] = values['start_pos'][1]
+
 
         if key>NUM_TAXIS:
 
