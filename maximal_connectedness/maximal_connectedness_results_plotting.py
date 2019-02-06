@@ -19,14 +19,46 @@ plt.ioff()
 
 
 #on C207
+
+NUM_TAXIS = 2000
+
 #SF ABM DATA, 2k taxis, 30 mins
-sim_data_path = '/home/user/ABMTANET/maximal_connectedness/abm_sim_data/'
+#sim_data_path = '/home/user/ABMTANET/maximal_connectedness/abm_sim_data/'
 #sim_results_filename = 'sf_vanet_data_dict_1000taxis_0.5hrs_v2vdata_4feb.pickle'
 
+CITY_NAME = 'SF'
+sim_data_path = '/media/user/B53D-1DA8/6thfeb_sim_results/'
+#vanet_loc_data_filename = 'sf_vanet_node_loc_dict_2000taxis_0.5hrs_v2vdata_5feb.pickle'
+#vanet_graph_data_filename = 'sf_vanet_data_dict_2000taxis_0.5hrs_v2vdata_5feb.pickle'
 
-vanet_loc_data_filename = 'sf_vanet_node_loc_dict_2000taxis_0.5hrs_v2vdata_5feb.pickle'
-vanet_graph_data_filename = 'sf_vanet_data_dict_2000taxis_0.5hrs_v2vdata_5feb.pickle'
+vanet_loc_data_filename  = 'sf_vanet_node_loc_dict_300taxis_0.5hrs_v2vdata_6feb.pickle'
+vanet_graph_data_filename = 'sf_vanet_data_dict_300taxis_0.5hrs_v2vdata_6feb.pickle'
 
+MIN_LAT = 37.733 #general_model_params_dict['min_lat']
+MAX_LAT = 37.805 #general_model_params_dict['max_lat']
+MIN_LON = -122.479 #general_model_params_dict['min_lon']
+MAX_LON = -122.388 #general_model_params_dict['max_lon']
+
+
+
+"""
+#Rome ABM Data
+CITY_NAME = 'Roma'
+vanet_loc_data_filename = 'Roma_vanet_node_loc_dict_2000taxis_0.5hr_v2vdata_5feb.pickle'
+vanet_graph_data_filename = 'Roma_vanet_data_dict_2000taxis_0.5hr_v2vdata_5feb.pickle'
+MAX_LAT = 41.928
+MIN_LAT = 41.856
+MIN_LON = 12.442
+MAX_LON = 12.5387
+"""
+
+
+
+# Loadin' data...
+
+slices = 160 #8km... width...8000/slices = width of sample box...
+Xedges = np.linspace(MIN_LON,MAX_LON,slices)
+Yedges = np.linspace(MIN_LAT,MAX_LAT,slices)
 
 
 with open((sim_data_path+vanet_loc_data_filename), 'rb') as handle0:
@@ -38,21 +70,11 @@ with open((sim_data_path+vanet_graph_data_filename), 'rb') as handle1:
 handle1.close()
 
 
-CITY_NAME = 'SF'
-NUM_TAXIS = 1000
-
-MIN_LAT = 37.733 #general_model_params_dict['min_lat']
-MAX_LAT = 37.805 #general_model_params_dict['max_lat']
-MIN_LON = -122.479 #general_model_params_dict['min_lon']
-MAX_LON = -122.388 #general_model_params_dict['max_lon']
-
-slices = 160 #8km... width...8000/slices = width of sample box...
-Xedges = np.linspace(MIN_LON,MAX_LON,slices)
-Yedges = np.linspace(MIN_LAT,MAX_LAT,slices)
+output_results_path = '/home/user/ABMTANET/maximal_connectedness/VANET_LCC_results/%s/' % CITY_NAME
 
 
 ts_list = list(vanet_graph_data_dict.keys()) 
-output_results_path = '/home/user/ABMTANET/maximal_connectedness/VANET_LCC_results/'
+
 
 for i in range(ts_list[100], ts_list[1100],10):
 
@@ -92,7 +114,7 @@ for i in range(ts_list[100], ts_list[1100],10):
     cax = plt.axes([0.85, 0.1, 0.075, 0.8])
     plt.colorbar(cax=cax)
     plt.title('Heatmap, TS: %i, num. taxis in lCC: %i' % (i, num_taxis_in_largest_cc))
-    plt.savefig((output_results_path+ ('vanet_heatmap_plot_TS_%i.png' % (i))), dpi=300)
+    plt.savefig((output_results_path+ ('%s_%i_taxis_vanet_heatmap_plot_TS_%i.png' % (CITY_NAME, NUM_TAXIS,i))), dpi=300)
 #    plt.show()
 
     plt.figure()
@@ -102,8 +124,10 @@ for i in range(ts_list[100], ts_list[1100],10):
     plt.ylim([MIN_LAT, MAX_LAT])
     plt.xlim([MIN_LON, MAX_LON])
     plt.title('TS: %i, num. taxis in lCC: %i' % (i, num_taxis_in_largest_cc))
-    plt.savefig((output_results_path+('vanet_lcc_plot_TS_%i.png' % (i))), dpi=300)
+    plt.savefig((output_results_path+('%s_%i_taxis_vanet_lcc_plot_TS_%i.png' % (CITY_NAME, NUM_TAXIS,i))), dpi=300)
 #    plt.show()
+
+    print(i)
 
 
 
