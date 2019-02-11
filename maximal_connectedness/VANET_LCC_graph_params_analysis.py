@@ -27,10 +27,8 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
-import pyproj
-
-
-from shapely.geometry import Polygon
+from pyproj import Proj, transform
+#from shapely.geometry import Polygon
 
 
 #plt.ion()
@@ -38,8 +36,10 @@ plt.ioff()
 
 #on C207
 
-NUM_TAXIS = 2000
+#NUM_TAXIS = 2000
+#NUM_TAXIS = 300
 
+NUM_TAXIS = 1000
 """
 #Rome ABM Data
 CITY_NAME = 'Roma'
@@ -59,17 +59,25 @@ MAX_LON = 12.5387
 CITY_NAME = 'SF'
 sim_data_path = '/home/user/ABMTANET/maximal_connectedness/abm_sim_data/'
 #sim_data_path = '/media/user/B53D-1DA8/6thfeb_sim_results/'
-vanet_loc_data_filename = 'sf_vanet_node_loc_dict_2000taxis_0.5hrs_v2vdata_5feb.pickle'
-vanet_graph_data_filename = 'sf_vanet_data_dict_2000taxis_0.5hrs_v2vdata_5feb.pickle'
+#vanet_loc_data_filename = 'sf_vanet_node_loc_dict_2000taxis_0.5hrs_v2vdata_5feb.pickle'
+#vanet_graph_data_filename = 'sf_vanet_data_dict_2000taxis_0.5hrs_v2vdata_5feb.pickle'
 
-#vanet_loc_data_filename  = 'sf_vanet_node_loc_dict_300taxis_0.5hrs_v2vdata_6feb.pickle'
-#vanet_graph_data_filename = 'sf_vanet_data_dict_300taxis_0.5hrs_v2vdata_6feb.pickle'
+vanet_loc_data_filename  = 'sf_vanet_node_loc_dict_300taxis_0.5hrs_v2vdata_6feb.pickle'
+vanet_graph_data_filename = 'sf_vanet_data_dict_300taxis_0.5hrs_v2vdata_6feb.pickle'
 
-MIN_LAT = 37.733 #general_model_params_dict['min_lat']
-MAX_LAT = 37.805 #general_model_params_dict['max_lat']
-MIN_LON = -122.479 #general_model_params_dict['min_lon']
-MAX_LON = -122.388 #general_model_params_dict['max_lon']
+#vanet_loc_data_filename = ""
+#vanet_graph_data_filename = "sf_vanet_data_dict_1000taxis_0.5hrs_v2vdata_4feb.pickle"
 
+MIN_LAT = 37.733 
+MAX_LAT = 37.805 
+MIN_LON = -122.479 
+MAX_LON = -122.388 
+
+inProj = Proj(init='epsg:4326')
+outProj = Proj(init='epsg:32610')
+
+
+"""
 wgs84 = pyproj.Proj("+init=EPSG:4326") # LatLon classic.
 UTM10N = pyproj.Proj("+init=EPSG:32610") #urgh?
 
@@ -105,26 +113,63 @@ pshape = Polygon(test_points)
 
 test_points2 = ((549900,4176350),(553900,4176350),(553900,418350),(549900,418350))
 pshape = Polygon(test_points2)
+"""
 
 
+
+
+"""
 #fuck my life.
+##################day two ...#################################
+from pyproj import Proj, transform
+import numpy as np
+from scipy.spatial import ConvexHull
+from shapely.geometry import Polygon
+
+MIN_LAT = 37.733 
+MAX_LAT = 37.805 
+MIN_LON = -122.479 
+MAX_LON = -122.388 
+
+inProj = Proj(init='epsg:4326')
+outProj = Proj(init='epsg:32610')
+
+x_test_hull_array = np.array([(MIN_LON+MAX_LON)/2,(MIN_LON+MAX_LON)/2,MAX_LON,MAX_LON])
+x_test_hull_array = np.array([MIN_LON,MIN_LON,MAX_LON,MAX_LON])
+y_test_hull_array = np.array([MIN_LAT,MAX_LAT,MAX_LAT,MIN_LAT])
+
+x2,y2 = transform(inProj, outProj, x_test_hull_array, y_test_hull_array)
+
+x3, y3 = transform(outProj, inProj, x2,y2)
+print(x2)
+print(y2)
+print(x3)
+print(y3)
 
 
 
+lcc_points_array = np.transpose(np.vstack((x2,y2)))
+lcc_hull = ConvexHull(lcc_points_array)
+hull_x_plotting_points = x_test_hull_array[lcc_hull.vertices]
+hull_y_plotting_points = y_test_hull_array[lcc_hull.vertices]
+
+convex_hull_area_m2_test = lcc_hull.area
+
+test_points2 = ((545907,4176319),(545863,4184307),(553874,4184356),(553926,4176367))
+pshape = Polygon(test_points2)
 
 
+polygon_x, polygon_y = list(zip(*test_points2))
+
+plt.figure()
+#plt.plot(hull_x_plotting_points, hull_y_plotting_points,'-ok')
+plt.plot(x2,y2,'-ok')
+plt.plot(polygon_x, polygon_y, '.*b')
+plt.show()
 
 
-
-
-
-
-
-
-
-
-
-
+# IN short.... for 2d surfaces, convex_hull.Area returns perimiter length.... .volume returns area... Life is raw.
+"""
 
 
 
@@ -145,12 +190,12 @@ with open((sim_data_path+vanet_graph_data_filename), 'rb') as handle1:
 handle1.close()
 
 
-output_results_path = '/home/user/ABMTANET/maximal_connectedness/VANET_LCC_results/%s/' % CITY_NAME
+#output_results_path = '/home/user/ABMTANET/maximal_connectedness/VANET_LCC_results/%s/' % CITY_NAME
 
+output_results_path = '/home/user/ABMTANET/maximal_connectedness/VANET_LCC_results/SF/SF_300taxis_results/'
 
 ts_list = list(vanet_graph_data_dict.keys()) 
 convex_hull_area_m2_list = []
-cchasf = 2000
 
 for i in range(ts_list[100], ts_list[1100],10):
 
@@ -186,12 +231,16 @@ for i in range(ts_list[100], ts_list[1100],10):
 #    hull_y_plotting_points = lcc_points[lcc_hull.vertices,1]
 
 
-    utm_points_array = UTM10N(taxi_lon_array, taxi_lat_array)
-    lcc_points_array = np.transpose(np.vstack((utm_points_array[0],utm_points_array[1])))
+    #utm_points_array = UTM10N(taxi_lon_array, taxi_lat_array)
+
+    utm_x, utm_y = transform(inProj, outProj, taxi_lon_array, taxi_lat_array)
+    lcc_points_array = np.transpose(np.vstack((utm_x,utm_y)))
+    
+    #lcc_points_array = np.transpose(np.vstack((utm_points_array[0],utm_points_array[1])))
     lcc_hull = ConvexHull(lcc_points_array)
     hull_x_plotting_points = np.hstack((taxi_lon_array[lcc_hull.vertices], taxi_lon_array[lcc_hull.vertices[0]]))
     hull_y_plotting_points = np.hstack((taxi_lat_array[lcc_hull.vertices],taxi_lat_array[lcc_hull.vertices[0]]))
-    convex_hull_area_m2_list.append(lcc_hull.area)
+    convex_hull_area_m2_list.append(lcc_hull.volume)
 
     plt.figure()
     plt.imshow(np.rot90(H2), cmap=plt.cm.BuPu_r)
@@ -209,11 +258,12 @@ for i in range(ts_list[100], ts_list[1100],10):
     plt.plot(hull_x_plotting_points,hull_y_plotting_points,'*g--')
     plt.ylim([MIN_LAT, MAX_LAT])
     plt.xlim([MIN_LON, MAX_LON])
-    plt.title('TS: %i, num. taxis in LCC: %i, LCC norm. area = %f' % (i, num_taxis_in_largest_cc, (((convex_hull_area_m2_list[-1]*cchasf)/1000**2)/8**2)))
+    plt.title('TS: %i, num. taxis in LCC: %i, LCC norm. area = %f' % (i, num_taxis_in_largest_cc, (((convex_hull_area_m2_list[-1])/1000**2)/8**2)))
     plt.savefig((output_results_path+('%s_%i_taxis_vanet_lcc_plot_TS_%i.png' % (CITY_NAME, NUM_TAXIS,i))), dpi=300)
 #    plt.show()
 
     print(i)
+    print((((convex_hull_area_m2_list[-1])/1000**2)/8**2))
 
 
 convex_hull_area_norm_array = (((np.array(convex_hull_area_m2_list))/1000**2)/8**2)*200

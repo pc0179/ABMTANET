@@ -97,7 +97,7 @@ with open((sim_data_path+real_positions_dataset_filename), 'rb') as handle1:
 handle1.close()
 
 
-#SF geometries...
+#Roma geometries...
 MIN_LAT = 41.856 
 MAX_LAT = 41.928 
 MIN_LON = 12.442 
@@ -115,17 +115,22 @@ Yedges = np.linspace(MIN_LAT,MAX_LAT,slices)
 
 convex_hull_area_m2_list = []
 convex_hull_perimeter_m_list = []
+num_LCC_nodes_list = []
+num_LCC_edges_list = [] 
+LCC_edge_density_list = [] 
+LCC_node_area_coverage_list = [] 
+LCC_CofM_longitude_list = [] 
+LCC_CofM_latitude_list = []
+LCC_taxi_id_set_dict = dict()
 
 timestamp_list = sorted(list(vanet_dict.keys()))
+starting_timestamp_index = 1000
+ending_timestamp_index = 1100
 
-for timestamp in timestamp_list[1000:1100]:
-#for timestamp, values in vanet_dict.items():
+for timestamp in timestamp_list[starting_timestamp_index :ending_timestamp_index]:
 
     G = nx.Graph()
     edges_list = [] #so edge-y!
-    #taxiAids_list = values['taxiAid']
-    #taxiBids_list = values['taxiBid']
-
     edges_list = list(zip(vanet_dict[timestamp]['taxiAid'],vanet_dict[timestamp]['taxiBid']))
 
     G.add_edges_from(edges_list)
@@ -134,6 +139,7 @@ for timestamp in timestamp_list[1000:1100]:
 
     LCC_latitudes_array = np.zeros(num_taxis_in_LCC)
     LCC_longitudes_array = np.zeros(num_taxis_in_LCC)
+    LCC_taxi_ids_array = np.zeros(num_taxis_in_LCC)
 
     lcc_taxi_counter = 0
 
@@ -169,8 +175,20 @@ for timestamp in timestamp_list[1000:1100]:
     hull_x_plotting_points = np.hstack((LCC_longitudes_array[lcc_hull.vertices], LCC_longitudes_array[lcc_hull.vertices[0]]))
     hull_y_plotting_points = np.hstack((LCC_longitudes_array[lcc_hull.vertices],LCC_longitudes_array[lcc_hull.vertices[0]]))
     
+
+    #data collection...
     convex_hull_area_m2_list.append(lcc_hull.volume)
     convex_hull_perimeter_m_list.append(lcc_hull.area)
+
+    num_LCC_nodes_list.append(lcc_hull.vertices.size)
+    num_LCC_edges_list.append(lcc_hull.simplices.size)
+    LCC_edge_density_list.append(num_LCC_edges_list[-1]/(num_LCC_nodes_list[-1]*(num_LCC_nodes_list[-1]-1)))
+    LCC_node_area_coverage_list.append(convex_hull_area_m2_list[-1]/num_LCC_nodes_list[-1])
+
+    LCC_CofM_longitude_list.append(long_cofm_cc)
+    LCC_CofM_latitude_list.append(lat_cofm_cc)
+
+    LCC_taxi_id_set_dict[timestamp] = set(LCC_list)
 
     #Sneaky Heatmap...
     all_taxis_longs, all_taxis_lats = list(zip(*pos_dict[timestamp]['longlat']))
@@ -178,7 +196,6 @@ for timestamp in timestamp_list[1000:1100]:
 
 
     #PLotting....
-
     plt.figure()
     plt.imshow(np.rot90(H2), cmap=plt.cm.BuPu_r)
     plt.title('%s, num. Taxis:%i, time_step:%i, max_component: %i, total v2v exchanges: %i' % (CITY_NAME, NUM_TAXIS, timestamp, num_taxis_in_LCC, len(edges_list)))
@@ -201,10 +218,30 @@ for timestamp in timestamp_list[1000:1100]:
     #H, xedges2, yedges2 = np.histogram2d(
 
     print('timestamp= %i, LCC_area= %f LCC_perimeter= %f, P/A= %f' % (timestamp, lcc_hull.volume, lcc_hull.area, (lcc_hull.area/lcc_hull.volume)))
+    #quick check.. aka a 'queck'...
+    print("graph_nodes: %i, graph_edges: %i" % (num_LCC_nodes_list[-1], num_LCC_edges_list[-1]))
 
 
 
 
+####################### Output data gathering....
+
+lcc_data_dict = {'NUM_TAXIS': NUM_TAXIS, 'timestamps':np.array(timestamp_list[starting_timestamp_index :ending_timestamp_index]), 'lcc_area_m2': np.array(convex_hull_area_m2_list), 'lcc_permiter_m': np.array(convex_hull_perimeter_m_list), 'lcc_cofm_lats': np.array(LCC_CofM_latitude_list), 'lcc_cofm_longs': LCC_CofM_longitude_list, 'lcc_num_edges': np.array(num_LCC_edges_list), 'lcc_num_nodes': np.array(num_LCC_nodes_list), 'lcc_node_area_cov': np.array(LCC_node_area_coverage_list), 'lcc_edge_density': np.array(LCC_edge_density_list)}
+
+
+output_filename = '%s_%i_taxis_LCC_data.pickle' % (CITY_NAME, NUM_TAXIS)
+with open((output_results_path +output_filename), 'wb') as handle9:
+    pickle.dump(lcc_data_dict, handle9, protocol=pickle.HIGHEST_PROTOCOL)
+handle9.close()
+
+
+output_filename2 = '%s_%i_taxis_LCC_taxi_ids_dict.pickle' % (CITY_NAME, NUM_TAXIS)
+with open((output_results_path +output_filename2), 'wb') as handle10:
+    pickle.dump(LCC_taxi_id_set_dict, handle10, protocol=pickle.HIGHEST_PROTOCOL)
+handle10.close()
+
+
+# More plots.....
 
 
 
