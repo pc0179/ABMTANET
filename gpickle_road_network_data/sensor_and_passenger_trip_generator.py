@@ -13,21 +13,21 @@ import numpy as np
 from networkx import read_gpickle, shortest_path, has_path
 
 ###### OSM FILTERED ROAD MAP DATAFILE...
-"""
+
 #on c225
 data_file_path =  '/home/toshiba/MiniTaxiFleets/gpickle_road_network_data/'
 road_network_filename = 'Highest_Protocol_Roma_Centrale_Road_Network.gpickle'
 CITY_NAME = 'roma'
-SIM_RUN_DATE = '18Jan'
-"""
+SIM_RUN_DATE = '12feb'
 
+"""
 #on C207
 data_file_path =  '/home/user/ABMTANET/gpickle_road_network_data/'
 #road_network_filename = 'Highest_Protocol_SF_Central_Road_Network.gpickle'
 road_network_filename = 'Highest_Protocol_Birmingham_central_Road_Network.gpickle'
 CITY_NAME = 'birmingham'
 SIM_RUN_DATE = '28Jan'
-
+"""
 # road network data
 road_network = read_gpickle(data_file_path + road_network_filename)
 node_id_list = list(road_network.nodes()) 
