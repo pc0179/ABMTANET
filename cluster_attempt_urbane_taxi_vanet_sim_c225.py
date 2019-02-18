@@ -906,9 +906,9 @@ for time_step in range(0,LEN_SIM):
 
 
 
-        #Update Central Intelligence Matrix (CIM)
-        taxi_longitude_array[taxi.id] = taxi.pos[0]
-        taxi_latitude_array[taxi.id] = taxi.pos[1]
+    #Update Central Intelligence Matrix (CIM)
+    taxi_longitude_array[taxi.id] = taxi.pos[0]
+    taxi_latitude_array[taxi.id] = taxi.pos[1]
 
 
 end_code_time = timer()
