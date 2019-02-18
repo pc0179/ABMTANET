@@ -15,10 +15,10 @@ plt.ion()
 
 
 #C225
-#sim_data_results_filepath = '/home/toshiba/ABMTANET/simulation_results/'
+sim_data_results_filepath = '/home/toshiba/ABMTANET/simulation_results/'
 
 #C207
-sim_data_results_filepath = '/home/user/ABMTANET/simulation_results/'
+#sim_data_results_filepath = '/home/user/ABMTANET/simulation_results/'
 
 #general model params
 #CITY_NAME = 'Roma' #'SF'
@@ -27,8 +27,14 @@ sim_data_results_filepath = '/home/user/ABMTANET/simulation_results/'
 #CITY_NAME = 'Roma'
 #SIM_RUN_DATE = '2Ktaxis_2hrs_expolos_23jan'
 
-CITY_NAME = 'Roma'
-SIM_RUN_DATE = '2Ktaxis_30mins_expolos_23jan'
+
+# jan29th results...
+#CITY_NAME = 'Roma'
+#SIM_RUN_DATE = '2Ktaxis_4hrs_v2vdata_25jan'
+CITY_NAME = 'sf'
+SIM_RUN_DATE = '2Ktaxis_4hrs_v2vdata_28jan'
+
+
 
 general_model_params_filename = '%s_general_model_params_%s.pickle' % (CITY_NAME,SIM_RUN_DATE)
  
@@ -157,10 +163,13 @@ plt.show()
 
 
 #### V2V exchanges? and taxi trajectories...
+
+#assuming no prior computation, just raw positional data
 v2v_exchanges_filname = '%s_v2v_sharing_loc_heatmap_dict_%s.pickle' % (CITY_NAME, SIM_RUN_DATE)
 
 with open(sim_data_results_filepath+v2v_exchanges_filname, 'rb') as handle6:
     v2v_exchange_locs_dict = pickle.load(handle6)
+
 
 
 a = 0
@@ -223,7 +232,18 @@ ax0.set_title('V2V Exchange Heat-map, %s, total: %i, NUM_TAXIS: %i' % (CITY_NAME
 fig.tight_layout()
 plt.show()
 
+#in a special case, where this histogram has already been computed...
+with open(sim_data_results_filepath+v2v_exchanges_filname, 'rb') as handle6:
+    v2v_heatmap_array = pickle.load(handle6)
+total_v2v_exchanges = sum(v2v_heatmap_array)
+fig, ax0 = plt.subplots(1,1)
+c = ax0.pcolor(v2v_heatmap_array)
+ax0.set_title('V2V Exchange Heat-map, %s, total: %i, NUM_TAXIS: %i' % (CITY_NAME, int(total_v2v_exchanges), NUM_TAXIS))
+fig.tight_layout()
+plt.show()
 
+
+"""
 #comparing heatmaps between 'real' rome traces and taxi-agent traces....
 
 real_taxi_vanet_data_filename = 'No_Pandas_CORRECTED_VANET_rome_combined_29_days.pickle'
@@ -255,7 +275,7 @@ c = ax1.pcolor(sum_real_taxi_vanet_H2)
 ax1.set_title('real... V2V Exchange Heat-map, %s, total: %i, NUM of real TAXIS: 2250' % (CITY_NAME, int(total_real_v2v_exchanges)))
 fig.tight_layout()
 plt.show()
-
+"""
 
 
 
