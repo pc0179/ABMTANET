@@ -1,7 +1,8 @@
 """
-this script attempts to plot data outputed from 'real_datasets_LCC_VANET_analysis_plots.py'
+this script attempts to plot data outputed from 'real_datasets_LCC_VANET_analysis_plots.py' AND ABM datasets....
 
-essentially computed results data regarding convex hulls of VANETS (in real cities)
+lots of plots... 
+
 
 
 """
@@ -18,22 +19,24 @@ plt.ion()
 #plt.ioff()
 
 
-"""
+
 #Roma
 CITY_NAME = 'Rome'
-NUM_TAXIS = 2000 #300
+NUM_TAXIS = 300
 DATA_TYPE = 'ABM'
 #Roma geometries...
 MIN_LAT = 41.856 
 MAX_LAT = 41.928 
 MIN_LON = 12.442 
 MAX_LON = 12.5387 
-"""
-##############################################################################################
 
+
+
+##############################################################################################
+"""
 #San Francisco ABM dataset analysis
 CITY_NAME = 'SF'
-NUM_TAXIS = 300 #2000
+NUM_TAXIS = 300
 DATA_TYPE = 'ABM'
 
 
@@ -41,6 +44,14 @@ MIN_LAT = 37.733
 MAX_LAT = 37.805 
 MIN_LON = -122.479 
 MAX_LON = -122.388 
+"""
+
+#################################################################~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+
 
 
 
@@ -182,9 +193,61 @@ plt.show()
 
 
 
+# Toying with this fucking connected components shit
+
+cc_bins = [0,2,5,10,15,20,25,30,40,50,75,100,200,300,400,500,750,1000,1250,1500,1750,2000]
+
+cumsum_hist = np.zeros(len(cc_bins)-1)
+for i in range(len(lcc_data_dict['CC_list'])):
+
+    hist, bin_edges = np.histogram(lcc_data_dict['CC_list'][i], cc_bins)
+
+    cumsum_hist += hist
+
+
+plt.figure()
+plt.plot(bin_edges[1:], cumsum_hist/len(lcc_data_dict['CC_list']),'--or')
+plt.xlabel('Size of Connected Component/[taxis]')
+plt.ylabel('Average Frequency')
+plt.title('%s %s taxis, V2V Connected Components' % (CITY_NAME, NUM_TAXIS))
+plt.savefig((input_results_path+'%s_%s_%i_taxis_Connected_Components_Size_distro.png' %(DATA_TYPE, CITY_NAME, NUM_TAXIS)),dpi=400)
+plt.show()
+
+
+"""
+plt.figure()
+plt.plot(bin_edges[1:], cumsum_hist,'--ob')
+plt.xlabel('Size of Connected Component/[taxis]')
+plt.ylabel('Cumulative? Frequency')
+plt.title('%s %s taxis, V2V Connected Components' % (CITY_NAME, NUM_TAXIS))
+plt.show()
+"""
+
+
+##### LCC graph diameter...
+plt.figure()
+plt.plot(timestamps_list, lcc_data_dict['LCC_graph_diameter'],'--or')
+plt.xlabel('Time/[s]')
+plt.ylabel('LCC Graph Diameter/[Hop Count]')
+plt.title('%s %s taxis, V2V LCC graph diameter' % (CITY_NAME, NUM_TAXIS))
+plt.savefig((input_results_path+'%s_%s_%i_taxis_LCC_graph_diameter.png' %(DATA_TYPE, CITY_NAME, NUM_TAXIS)),dpi=400)
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
 
 """
 spare code....
+
 
 
 lcc_data_dict = {'NUM_TAXIS': NUM_TAXIS, 'timestamps':np.array(timestamp_list[starting_timestamp_index :ending_timestamp_index]), 'lcc_area_m2': np.array(convex_hull_area_m2_list), 'lcc_permiter_m': np.array(convex_hull_perimeter_m_list), 'lcc_cofm_lats': np.array(LCC_CofM_latitude_list), 'lcc_cofm_longs': LCC_CofM_longitude_list, 'lcc_num_edges': np.array(num_LCC_edges_list), 'lcc_num_nodes': np.array(num_LCC_nodes_list), 'lcc_node_area_cov': np.array(LCC_node_area_coverage_list), 'lcc_edge_density': np.array(LCC_edge_density_list)}
